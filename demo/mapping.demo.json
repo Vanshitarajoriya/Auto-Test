@@ -1,0 +1,9 @@
+{
+  "_readme": "Demo mapping. OTP > Resend is deliberately empty: that card shows the 'Manual needed' path and the live Claude authoring step.",
+  "OTP": {
+    "Send": ["DEMO-001", "DEMO-004"],
+    "Templates": ["DEMO-007"],
+    "Verify": ["DEMO-002", "DEMO-003", "DEMO-005"],
+    "Resend": []
+  }
+}

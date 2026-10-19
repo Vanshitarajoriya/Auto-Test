@@ -1,0 +1,45 @@
+{
+  "_readme": "Rules for scripts/guard-hook.mjs (Claude Code PreToolUse). Tune the ClickUp patterns after running /mcp to see the real tool names.",
+  "writeAllowPrefixes": [
+    "tests/",
+    "drafts/",
+    "specs/",
+    "demo/tests/"
+  ],
+  "writeDenyPrefixes": [
+    "tests/_selftest/",
+    "tests/_canary/",
+    "tests/_template/"
+  ],
+  "protectedPaths": [
+    "src/",
+    "runner/",
+    "server/",
+    "scripts/",
+    "config/",
+    ".claude/",
+    ".github/",
+    "CLAUDE.md",
+    "mapping.json",
+    "playwright.config",
+    ".mcp.json",
+    "package.json"
+  ],
+  "clickup": {
+    "allow": [
+      "(^|_)(get|search|list|find|read|fetch|query)(_|$)",
+      "(create|add)_?(task_)?comment"
+    ],
+    "deny": [
+      "delete",
+      "remove",
+      "bulk",
+      "merge",
+      "archive",
+      "move",
+      "(^|_)update",
+      "(^|_)set_"
+    ]
+  },
+  "blockedBrowserTools": "browser_(run_code|evaluate)"
+}

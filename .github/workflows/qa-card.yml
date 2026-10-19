@@ -1,0 +1,54 @@
+name: QA card run
+on:
+  workflow_dispatch:
+    inputs:
+      task_id:
+        description: ClickUp task id
+        required: true
+  repository_dispatch:
+    types: [qa-card] # viaSocket calls this with client_payload.task_id when a card moves to "Ready for QA"
+concurrency:
+  group: qa-card-${{ github.event.inputs.task_id || github.event.client_payload.task_id }}
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TASK_ID: ${{ github.event.inputs.task_id || github.event.client_payload.task_id }}
+      DEV_URL: ${{ secrets.DEV_URL }}
+      ALLOWED_HOSTS: ${{ secrets.ALLOWED_HOSTS }}
+      MSG91_AUTHKEY: ${{ secrets.MSG91_AUTHKEY }}
+      TEST_RECIPIENTS: ${{ secrets.TEST_RECIPIENTS }}
+      TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
+      TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+      CLICKUP_TOKEN: ${{ secrets.CLICKUP_TOKEN }}
+      CLICKUP_BUG_LIST_ID: ${{ vars.CLICKUP_BUG_LIST_ID }}
+      STATUS_PASSED: ${{ vars.STATUS_PASSED }}
+      STATUS_FAILED: ${{ vars.STATUS_FAILED }}
+      STATUS_BLOCKED: ${{ vars.STATUS_BLOCKED }}
+      MAX_MESSAGES_PER_RUN: ${{ vars.MAX_MESSAGES_PER_RUN || '20' }}
+    steps:
+      - name: Validate task id
+        run: |
+          case "$TASK_ID" in (*[!A-Za-z0-9_-]*|"") echo "bad task id"; exit 1;; esac
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      # Week 1: comment only. Turn on status moves / bug cards later with repository variables POST_STATUS and CREATE_BUGS = true.
+      - name: Run the card
+        run: node runner/run-card.mjs --task "$TASK_ID" --post ${{ vars.POST_STATUS == 'true' && '--post-status' || '' }} ${{ vars.CREATE_BUGS == 'true' && '--create-bug' || '' }}
+      - name: Keep evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-${{ env.TASK_ID }}
+          path: |
+            playwright-report/
+            test-results/
+            results/
+          retention-days: 14

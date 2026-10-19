@@ -1,0 +1,15 @@
+{
+  "_readme": "Module -> Feature -> test IDs. Names must match the ClickUp Module and Feature dropdowns exactly. An empty list means 'no automated tests yet' and the card gets 'Manual needed'. Change this file only through a pull request.",
+  "Platform": { "Safety": ["SAFE-001", "SAFE-002", "SAFE-003", "SAFE-004", "SAFE-005", "SAFE-006", "SAFE-007", "SAFE-008", "SAFE-009", "SAFE-010", "SAFE-011", "SAFE-012", "SAFE-013", "SAFE-014"] },
+  "OTP": { "Send": [], "Verify": [], "Resend": [] },
+  "OTP Widget": { "Widget": [] },
+  "SMS": { "Send": [], "Templates": [] },
+  "WhatsApp": { "Templates": [], "Send message": [], "Groups": [] },
+  "Email": { "Send": [], "Templates": [] },
+  "Voice": { "Call": [], "IVR": [] },
+  "RCS": { "Send": [] },
+  "Hello": { "Bots": [], "Tickets": [], "Drafts": [] },
+  "Segmento": { "Contacts": [], "Events": [] },
+  "Campaign": { "Launch": [], "Schedule": [] },
+  "Dashboard": { "Login": [], "Signup": [], "Wallet": [] }
+}

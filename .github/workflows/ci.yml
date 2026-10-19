@@ -1,0 +1,25 @@
+name: Library checks (every pull request)
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+      - name: Guardrail self-tests must pass
+        run: npx playwright test --project=selftest
+      - name: Canaries must FAIL (a passing canary means the suite is broken)
+        run: |
+          if npx playwright test --project=canary --reporter=line; then
+            echo "A canary PASSED: the suite or a guard is broken"; exit 1
+          fi
+      - name: Test IDs unique and mapping.json consistent
+        run: npm run check

@@ -1,0 +1,29 @@
+{
+  "name": "msg91-qa-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Card-driven QA automation: Playwright runs approved tests, plain code decides pass/fail, Claude only authors drafts.",
+  "scripts": {
+    "start": "node server/index.mjs",
+    "selftest": "playwright test --project=selftest",
+    "canary": "playwright test --project=canary",
+    "card": "node runner/run-card.mjs",
+    "report": "playwright show-report",
+    "codegen": "playwright codegen",
+    "mock-clickup": "node scripts/mock-clickup.mjs",
+    "check": "node scripts/check-library.mjs",
+    "demo": "node demo/run-demo.mjs",
+    "demo:servers": "node demo/run-demo.mjs --servers-only",
+    "demo:card": "node runner/run-card.mjs --mapping demo/mapping.demo.json",
+    "doctor": "node scripts/doctor.mjs",
+    "seed": "playwright test --project=seed"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@playwright/test": "^1.64.1",
+    "dotenv": "^18.0.8"
+  }
+}

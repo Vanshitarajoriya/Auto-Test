@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "deny": ["Read(./.env)", "Read(./.env.local)"]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__playwright.*|mcp__clickup.*|Bash|Write|Edit|MultiEdit|NotebookEdit|Read",
+        "hooks": [
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/scripts/guard-hook.mjs\"" }
+        ]
+      }
+    ]
+  }
+}
