@@ -3,13 +3,12 @@
 // `runner/run-card.mjs` and `demo/run-demo.mjs`, one job at a time, and shows their results.
 //   GET  /              status page (config check, recent runs, demo report)
 //   GET  /health        JSON health
-//   POST /run           {"task_id":"<clickup id>"}  header x-runner-secret   (viaSocket doorbell)
-//   POST /demo          header x-runner-secret      (fake API + fake ClickUp; touches nothing real)
+//   POST /run           {"task_id":"<clickup id>"}   (viaSocket doorbell; public, no secret)
+//   POST /demo          (fake API + fake ClickUp; touches nothing real)
 //   GET  /runs/<id>     one job: status, verdict, log
 //   GET  /demo/report   last demo report (and its Playwright reports under /demo/output/)
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
-import { timingSafeEqual } from 'node:crypto';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -17,7 +16,6 @@ import '../src/config.mjs'; // loads .env when present
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'); // fileURLToPath: correct on Windows too
 const PORT = Number(process.env.PORT || 3000);
-const SECRET = process.env.RUNNER_SECRET || '';
 const flag = (name) => process.env[name] === 'true';
 const MAX_JOBS = 50;
 const MAX_LOG = 200_000;
@@ -28,13 +26,6 @@ let running = null;
 let seq = 0;
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-
-function secretOk(req) {
-  if (!SECRET) return false; // no secret configured = POST endpoints disabled
-  const got = Buffer.from(String(req.headers['x-runner-secret'] || ''));
-  const want = Buffer.from(SECRET);
-  return got.length === want.length && timingSafeEqual(got, want);
-}
 
 // Week 1 is comment-only (decision D8). Status moves and bug cards need POST_STATUS / CREATE_BUGS = true.
 function cardArgs(taskId) {
@@ -105,7 +96,6 @@ const publicJob = ({ argv, log, ...j }) => j;
 function configChecks() {
   const has = (k) => !!process.env[k];
   return [
-    { name: 'RUNNER_SECRET set (POST /run and /demo are off without it)', ok: has('RUNNER_SECRET') },
     { name: 'DEV_URL set (real card runs refuse to start without it)', ok: has('DEV_URL') },
     { name: 'ALLOWED_HOSTS set explicitly', ok: has('ALLOWED_HOSTS') },
     { name: 'MSG91_AUTHKEY set (automation account on dev)', ok: has('MSG91_AUTHKEY') },
@@ -139,22 +129,22 @@ code{font-family:ui-monospace,monospace;font-size:13px}.wrap{overflow-x:auto}
 <ul style="margin-top:8px">${checks}</ul></section>
 <h2>Demo</h2>
 <section><p class="muted">Six cards against a fake MSG91-style API and a fake ClickUp, plus the safety checks. Nothing real is touched. Takes about 2 minutes.</p>
-<form id="demo"><input type="password" name="secret" placeholder="Runner secret" autocomplete="off" required><button>Run the demo</button></form>
+<form id="demo"><button>Run the demo</button></form>
 <p>${report}</p></section>
 <h2>Run a ClickUp card</h2>
 <section><p class="muted">Same as the viaSocket doorbell. Needs the dev environment configured above; otherwise pre-flight returns "Blocked: environment".</p>
-<form id="card"><input name="task_id" placeholder="ClickUp task id" required pattern="[A-Za-z0-9_-]+"><input type="password" name="secret" placeholder="Runner secret" autocomplete="off" required><button>Run card</button></form></section>
+<form id="card"><input name="task_id" placeholder="ClickUp task id" required pattern="[A-Za-z0-9_-]+"><button>Run card</button></form></section>
 <p id="msg" class="muted"></p>
 <h2>Recent runs</h2>
 <div class="wrap"><table>${rows || '<tr><td class="muted">No runs yet.</td></tr>'}</table></div>
 <h2>viaSocket doorbell</h2>
-<section><code>POST /run</code> with header <code>x-runner-secret</code> and body <code>{"task_id":"&lt;id&gt;"}</code>. Answers 202 and queues the card; runs go one at a time.</section>
+<section><code>POST /run</code> with body <code>{"task_id":"&lt;id&gt;"}</code>. Answers 202 and queues the card; runs go one at a time.</section>
 </main><script>
 const msg=document.getElementById('msg');
-async function go(url,secret,body){msg.textContent='Sending…';try{const r=await fetch(url,{method:'POST',headers:{'content-type':'application/json','x-runner-secret':secret},body:JSON.stringify(body||{})});const j=await r.json();
+async function go(url,body){msg.textContent='Sending…';try{const r=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body||{})});const j=await r.json();
 if(r.ok){location.href='/runs/'+j.id}else{msg.textContent=j.error||('Error '+r.status)}}catch(e){msg.textContent=String(e)}}
-document.getElementById('demo').onsubmit=e=>{e.preventDefault();go('/demo',e.target.secret.value)};
-document.getElementById('card').onsubmit=e=>{e.preventDefault();go('/run',e.target.secret.value,{task_id:e.target.task_id.value.trim()})};
+document.getElementById('demo').onsubmit=e=>{e.preventDefault();go('/demo')};
+document.getElementById('card').onsubmit=e=>{e.preventDefault();go('/run',{task_id:e.target.task_id.value.trim()})};
 </script></body></html>`;
 }
 
@@ -196,7 +186,6 @@ const server = createServer(async (req, res) => {
     if (req.method === 'GET' && p.startsWith('/demo/output/')) return serveDemoFile(res, decodeURIComponent(p.slice('/demo/output/'.length)));
 
     if (req.method === 'POST' && (p === '/run' || p === '/demo')) {
-      if (!secretOk(req)) return send(res, 401, { error: SECRET ? 'bad or missing x-runner-secret' : 'RUNNER_SECRET is not set on the server, so runs are disabled' });
       if (p === '/demo') {
         if ([running, ...queue].some((j) => j && j.kind === 'demo')) return send(res, 409, { error: 'a demo is already queued or running' });
         const job = enqueue('demo', 'Demo (fake API + fake ClickUp)', ['demo/run-demo.mjs']);
