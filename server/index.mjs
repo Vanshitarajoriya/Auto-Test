@@ -12,9 +12,10 @@ import { createServer } from 'node:http';
 import { timingSafeEqual } from 'node:crypto';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import '../src/config.mjs'; // loads .env when present
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'); // fileURLToPath: correct on Windows too
 const PORT = Number(process.env.PORT || 3000);
 const SECRET = process.env.RUNNER_SECRET || '';
 const flag = (name) => process.env[name] === 'true';
