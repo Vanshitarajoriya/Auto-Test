@@ -4,6 +4,7 @@
 //   npm run doctor -- --task 86d38k0vn  also reads that real card and shows what the runner would do with it
 // Flags: --mapping <file>  --offline (no network)  --skip-selftest
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { existsSync, readFileSync } from 'node:fs';
 import { defaultAllowedHosts } from '../src/config.mjs';
 import { assertAllowedUrl } from '../src/safety.mjs';
@@ -48,7 +49,7 @@ const claude = spawnSync('claude', ['--version'], { encoding: 'utf8' });
 claude.status === 0 ? ok(`Claude Code ${claude.stdout.trim()}`) : warn('Claude Code CLI not found (only the authoring agent needs it)', 'run: npm install -g @anthropic-ai/claude-code');
 existsSync('.env') ? ok('.env exists') : warn('no .env file', 'copy .env.example to .env and fill it (or set the variables in your shell)');
 if (!flag('skip-selftest')) {
-  const t = spawnSync('npx', ['playwright', 'test', '--project=selftest', '--reporter=line'], { encoding: 'utf8', shell: process.platform === 'win32' });
+  const t = spawnSync(process.execPath, [fileURLToPath(import.meta.resolve('@playwright/test/cli')), 'test', '--project=selftest', '--reporter=line'], { encoding: 'utf8' });
   const n = /(\d+) passed/.exec(t.stdout)?.[1];
   t.status === 0 ? ok(`guardrail self-tests pass (${n})`) : fail('guardrail self-tests FAIL', 'run: npm run selftest and read the failure before anything else');
 }

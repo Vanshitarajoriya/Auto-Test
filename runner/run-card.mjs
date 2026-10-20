@@ -2,6 +2,7 @@
 // Deterministic card runner. No AI in this file or anything it imports: the verdict comes from Playwright assertions.
 //   card -> read Module/Feature -> mapping.json -> pre-flight -> canary -> Playwright -> rules -> ClickUp
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import '../src/config.mjs'; // loads .env
 import { loadMapping, lookupTests } from '../src/mapping.mjs';
@@ -96,11 +97,12 @@ async function finish(verdict, extra = {}) {
   process.exit(EXIT[verdict] ?? 3);
 }
 
+// Run Playwright's CLI with node directly, never through a shell: on Windows cmd.exe would treat the "|" in --grep as a pipe.
+const PW_CLI = fileURLToPath(import.meta.resolve('@playwright/test/cli'));
 const pw = (pwArgs, env = {}, quiet = false) =>
-  spawnSync('npx', ['playwright', 'test', ...pwArgs], {
+  spawnSync(process.execPath, [PW_CLI, 'test', ...pwArgs], {
     stdio: quiet ? 'ignore' : 'inherit',
     env: { ...process.env, PLAYWRIGHT_HTML_OPEN: 'never', ...env },
-    shell: process.platform === 'win32',
   });
 const readJson = (p) => {
   try {

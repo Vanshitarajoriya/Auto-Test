@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 // PR gate for the test library: every test has a unique "ID: title", and every ID in mapping.json exists.
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import '../src/config.mjs';
 import { collectTests } from '../src/results.mjs';
 import { loadMapping } from '../src/mapping.mjs';
 
-const r = spawnSync('npx', ['playwright', 'test', '--list', '--reporter=json'], { encoding: 'utf8', maxBuffer: 100e6, shell: process.platform === 'win32' });
+const r = spawnSync(process.execPath, [fileURLToPath(import.meta.resolve('@playwright/test/cli')), 'test', '--list', '--reporter=json'], { encoding: 'utf8', maxBuffer: 100e6 });
 let tests;
 try {
   tests = collectTests(JSON.parse(r.stdout));
