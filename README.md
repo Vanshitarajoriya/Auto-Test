@@ -10,6 +10,6 @@ claude
 /test-card <ClickUp card id or URL>
 ```
 
-- **Start here:** [HANDOFF.md](HANDOFF.md) (MSG91 facts, testing standard, workflow) and [CLAUDE.md](CLAUDE.md) (hard rules).
+- **Start here:** [FULL_HANDOFF.md](FULL_HANDOFF.md) (full history and state), then [HANDOFF.md](HANDOFF.md) (MSG91 facts, testing standard, workflow) and [CLAUDE.md](CLAUDE.md) (hard rules).
 - Safety stays on: DEV-only URL check, `AUTO_TEST_` naming and cleanup, spend cap, test recipients only, guard hook. Canaries (`npm run canary`) must always fail.
 - No runner, no server: the agent does the whole job.
