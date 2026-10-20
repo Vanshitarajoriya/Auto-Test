@@ -10,6 +10,10 @@ ClickUp card -> "Ready for QA"
   no tests mapped? -> "Manual needed" -> Claude drafts tests -> pull request -> human merges -> next time it runs with zero AI
 ```
 
+## Start here (new Claude session)
+
+**[HANDOFF.md](HANDOFF.md)**: what was built, current state, rules, and the next steps, in order.
+
 ## Background
 
 **[CONTEXT.md](CONTEXT.md)** is the briefing for a new Claude Code session: the user's goal, every decision with its reason, MSG91 and tool facts, what is verified, lessons learned.
