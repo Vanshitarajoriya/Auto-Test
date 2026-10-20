@@ -6,7 +6,7 @@
 //  3. Uses the fixtures: api (guarded), cleanup (teardown), taggedName (AUTO_TEST_ prefix).
 //  4. Shown failing once on purpose (break the expected value, see it go red, then fix it).
 //  5. Messages go only to TEST_RECIPIENTS, and sends are counted: api.post(path, { data, sends: 1 }).
-//  6. Has an owner and tags below. IDs are added to mapping.json in the same pull request.
+//  6. Has an owner and tags below.
 import { test, expect, taggedName, assertTestRecipient } from '../../src/fixtures.mjs';
 
 test.describe('OTP-000 template', () => {

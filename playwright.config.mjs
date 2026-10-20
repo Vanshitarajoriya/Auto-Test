@@ -19,7 +19,6 @@ export default defineConfig({
     { name: 'selftest', testMatch: /_selftest\/.*\.spec\.mjs$/, retries: 0 },
     { name: 'canary', testMatch: /_canary\/.*\.spec\.mjs$/, retries: 0 },
     { name: 'api', testMatch: /\/api\/.*\.spec\.mjs$/ },
-    { name: 'demo', testDir: './demo/tests', testMatch: /.*\.spec\.mjs$/ }, // fake-API demo tests (npm run demo)
     { name: 'seed', testMatch: /_seed\/.*\.spec\.mjs$/, retries: 0, use: { browserName: 'chromium' } }, // npm run seed: saves the dev login to .auth/state.json
     { name: 'ui', testMatch: /\/ui\/.*\.spec\.mjs$/, use: { browserName: 'chromium', storageState: existsSync('.auth/state.json') ? '.auth/state.json' : undefined } },
   ],

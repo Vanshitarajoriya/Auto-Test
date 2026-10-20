@@ -1,7 +1,15 @@
 {
   "mcpServers": {
-    "playwright": { "command": "npx", "args": ["-y", "@playwright/mcp@latest"] },
-    "playwright-test": { "command": "npx", "args": ["playwright", "run-test-mcp-server"] },
-    "clickup": { "type": "http", "url": "https://mcp.clickup.com/mcp" }
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest"
+      ]
+    },
+    "clickup": {
+      "type": "http",
+      "url": "https://mcp.clickup.com/mcp"
+    }
   }
 }
